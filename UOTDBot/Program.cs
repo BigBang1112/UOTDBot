@@ -28,7 +28,7 @@ builder.ConfigureServices((context, services) =>
     services.AddHttpClient<TrackmaniaIO>()
         .AddStandardResilienceHandler();
     services.AddTransient(provider =>
-        new TrackmaniaIO(provider.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(TrackmaniaIO)), "UOTDBot/1.0 (by Poutrel and BigBang1112)"));
+        new TrackmaniaIO(provider.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(TrackmaniaIO)), "UOTDBot/1.2 (by Poutrel and BigBang1112)"));
 
     services.AddNadeoAPI();
 

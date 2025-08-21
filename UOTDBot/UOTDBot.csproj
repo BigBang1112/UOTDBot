@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Version>1.2.1</Version>
+		<Version>1.2.2</Version>
 	</PropertyGroup>
 	
 	<PropertyGroup>
@@ -25,24 +25,24 @@
 
 	<ItemGroup>
 		<PackageReference Include="ByteSize" Version="2.1.2" />
-		<PackageReference Include="Discord.Net" Version="3.17.4" />
+		<PackageReference Include="Discord.Net" Version="3.18.0" />
 		<PackageReference Include="GBX.NET" Version="2.2.1" />
 		<PackageReference Include="GBX.NET.LZO" Version="2.1.2" />
 		<PackageReference Include="GBX.NET.ZLib" Version="1.1.1" />
-		<PackageReference Include="ManiaAPI.NadeoAPI" Version="2.2.0" />
+		<PackageReference Include="ManiaAPI.NadeoAPI" Version="2.3.1" />
 		<PackageReference Include="ManiaAPI.NadeoAPI.Extensions.Hosting" Version="2.2.0" />
-		<PackageReference Include="ManiaAPI.TrackmaniaIO" Version="2.2.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.7">
+		<PackageReference Include="ManiaAPI.TrackmaniaIO" Version="2.3.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />
-		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.7" />
-		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.7.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.8.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
 		<PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0-preview.3.efcore.9.0.0" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
@@ -52,7 +52,7 @@
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
         <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.11.0-beta.2" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.12.0-beta.1" />
         <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
 	</ItemGroup>
 
