@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Položky řešení/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
+  <Project Path="ExportData/ExportData.csproj" />
+  <Project Path="UOTDBot.Tests/UOTDBot.Tests.csproj" />
+  <Project Path="UOTDBot/UOTDBot.csproj" />
+</Solution>
