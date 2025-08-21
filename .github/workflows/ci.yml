@@ -18,8 +18,8 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore UOTDBot.sln
+      run: dotnet restore UOTDBot.slnx
     - name: Build
-      run: dotnet build UOTDBot.sln --no-restore
+      run: dotnet build UOTDBot.slnx --no-restore
     - name: Test
-      run: dotnet test UOTDBot.sln --no-build --verbosity normal
+      run: dotnet test UOTDBot.slnx --no-build --verbosity normal
