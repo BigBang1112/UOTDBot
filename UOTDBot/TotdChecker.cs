@@ -55,7 +55,7 @@ internal sealed class TotdChecker
     {
         _logger.LogInformation("Checking for TOTD day {Day}...", day);
 
-        if (totds.MonthList.Length == 0)
+        if (totds.MonthList.Count == 0)
         {
             _logger.LogError("No TOTD found (empty month list).");
             return null;
@@ -64,13 +64,13 @@ internal sealed class TotdChecker
         var month = totds.MonthList[0];
         _logger.LogInformation("TOTD month: {Month}", month.Month);
 
-        if (month.Days.Length == 0)
+        if (month.Days.Count == 0)
         {
             _logger.LogCritical("No TOTD found (empty day list).");
             return null;
         }
 
-        if (day > month.Days.Length)
+        if (day > month.Days.Count)
         {
             _logger.LogCritical("No TOTD found (day out of range).");
             return null;
@@ -103,6 +103,12 @@ internal sealed class TotdChecker
         var mapInfo = await _nls.GetMapInfoAsync(mapUid, cancellationToken);
         
         _logger.LogInformation("Map details: {MapInfo}", mapInfo);
+
+        if (mapInfo is null)
+        {
+            _logger.LogError("Failed to get map info from NadeoLiveServices (MapUid: {MapUid}).", mapUid);
+            return null;
+        }
 
         using var mapResponse = await _http.GetAsync(mapInfo.DownloadUrl, cancellationToken);
 
@@ -181,6 +187,10 @@ internal sealed class TotdChecker
                 _logger.LogError(ex, "Failed to get current cup of the day.");
             }
         }
+
+        var joinLink = await _nls.JoinDailyChannelAsync(cancellationToken); // #qjoin=l5aAUY0LT4qgN0wTCbQR1g
+        // this will pick one specific room, which is good but also bad
+        // use like trackmania://#qjoin=l5aAUY0LT4qgN0wTCbQR1g
 
         if (mapModel is not null && reportIfAlreadyInDb)
         {

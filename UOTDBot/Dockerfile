@@ -1,9 +1,9 @@
 # Debug phase
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 ARG TARGETARCH=x64
 WORKDIR /src
@@ -18,7 +18,7 @@ RUN dotnet publish -c $BUILD_CONFIGURATION -a $TARGETARCH -o /app --self-contain
 
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/runtime-deps:9.0-alpine
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine
 ENV \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     LC_ALL=en_US.UTF-8 \

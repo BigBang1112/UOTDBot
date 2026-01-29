@@ -109,7 +109,7 @@ internal sealed class CarChecker
     {
         var recordList = await _tmio.GetLeaderboardAsync(mapUid, length: 10, cancellationToken: cancellationToken);
 
-        if (recordList.Tops.Length == 0)
+        if (recordList.Tops.Count == 0)
         {
             _logger.LogWarning("No WR found for the map, hoping that it's UOTD, fingers crossed (MapUid: {MapUid}).", mapUid);
             return null;

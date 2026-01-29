@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using UOTDBot.Extensions;
 
 namespace UOTDBot;
 
@@ -51,22 +50,7 @@ internal sealed class Startup : IHostedService
 
         _logger.LogInformation("Starting bot and authorizing with NadeoLiveServices + NadeoClubServices...");
 
-        var dedicatedServerLogin = _config.GetRequiredValue("DedicatedServer:Login");
-        var dedicatedServerPassword = _config.GetRequiredValue("DedicatedServer:Password");
-
-        await Task.WhenAll(
-            _bot.StartAsync(),
-            _nls.AuthorizeAsync(
-                dedicatedServerLogin,
-                dedicatedServerPassword,
-                AuthorizationMethod.DedicatedServer,
-                cancellationToken),
-            _ncs.AuthorizeAsync(
-                dedicatedServerLogin,
-                dedicatedServerPassword,
-                AuthorizationMethod.DedicatedServer,
-                cancellationToken)
-            );
+        await _bot.StartAsync();
 
         await scope.ServiceProvider.GetRequiredService<UotdInitializer>().InitializeAsync(cancellationToken);
     }

@@ -5,9 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using UOTDBot;
+using UOTDBot.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
+using ManiaAPI.NadeoAPI;
 using ManiaAPI.TrackmaniaIO;
 using ManiaAPI.NadeoAPI.Extensions.Hosting;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -30,7 +32,13 @@ builder.ConfigureServices((context, services) =>
     services.AddTransient(provider =>
         new TrackmaniaIO(provider.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(TrackmaniaIO)), "UOTDBot/1.2 (by Poutrel and BigBang1112)"));
 
-    services.AddNadeoAPI();
+    services.AddNadeoAPI(options =>
+    {
+        options.Credentials = new NadeoAPICredentials(
+            context.Configuration.GetRequiredValue("DedicatedServer:Login"),
+            context.Configuration.GetRequiredValue("DedicatedServer:Password"),
+            AuthorizationMethod.DedicatedServer);
+    });
 
     services.AddSingleton(TimeProvider.System);
 
