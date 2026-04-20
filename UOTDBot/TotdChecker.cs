@@ -123,7 +123,7 @@ internal sealed class TotdChecker
             _logger.LogInformation("UOTD elements found. Checking the WR if it has a UOTD car...");
 
             var carDistrib = features.CarDistribution = await _carChecker.DownloadAndCheckGhostsAsync(
-                mapUid, features.DefaultCar, backupGhost: raceValidateGhost, cancellationToken);
+                mapUid, features.DefaultCar, raceValidateGhost, cancellationToken);
 
             if (carDistrib is not null)
             {

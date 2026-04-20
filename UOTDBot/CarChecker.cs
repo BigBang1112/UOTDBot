@@ -1,12 +1,12 @@
-﻿using GBX.NET.Engines.Game;
-using GBX.NET;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.Logging;
-using UOTDBot.Models;
-using System.Collections.Immutable;
-using TmEssentials;
-using ManiaAPI.TrackmaniaIO;
+﻿using GBX.NET;
+using GBX.NET.Engines.Game;
 using GBX.NET.Engines.MwFoundations;
+using ManiaAPI.TrackmaniaIO;
+using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using TmEssentials;
+using UOTDBot.Models;
 
 namespace UOTDBot;
 
@@ -105,9 +105,26 @@ internal sealed class CarChecker
         return features;
     }
 
-    public async Task<Dictionary<string, CarDistribution>?> DownloadAndCheckGhostsAsync(string mapUid, string defaultCar, CGameCtnGhost? backupGhost, CancellationToken cancellationToken)
+    public async Task<Dictionary<string, CarDistribution>?> DownloadAndCheckGhostsAsync(string mapUid, string defaultCar, CGameCtnGhost? raceValidateGhost, CancellationToken cancellationToken)
     {
         var recordList = await _tmio.GetLeaderboardAsync(mapUid, length: 10, cancellationToken: cancellationToken);
+
+        if (raceValidateGhost is not null)
+        {
+            var dict = CheckGhost(raceValidateGhost, mapUid, defaultCar);
+
+            // Map is UOTD with unknown car distribution
+            if (dict is null)
+            {
+                return null;
+            }
+
+            // Car change detected in race validate ghost
+            if (dict.Count > 0)
+            {
+                return dict;
+            }
+        }
 
         if (recordList.Tops.Count == 0)
         {
@@ -119,7 +136,7 @@ internal sealed class CarChecker
         {
             using var wrGhostResponse = await _tmio.Client.GetAsync($"https://trackmania.io{record.Url}", cancellationToken);
 
-            var ghost = backupGhost;
+            var ghost = default(CGameCtnGhost);
 
             if (wrGhostResponse.IsSuccessStatusCode)
             {
@@ -133,95 +150,17 @@ internal sealed class CarChecker
                 continue;
             }
 
-            if (ghost.RecordData is null)
-            {
-                _logger.LogWarning("No record data found in the WR ghost (MapUid: {MapUid}).", mapUid);
-                continue;
-            }
+            var dict = CheckGhost(ghost, mapUid, defaultCar);
 
-            var arenaPlayerIndex = -1;
-            for (int i = 0; i < ghost.RecordData.EntRecordDescs.Length; i++)
-            {
-                if (ghost.RecordData.EntRecordDescs[i].ClassId == 0x032CB000)
-                {
-                    arenaPlayerIndex = i;
-                    break;
-                }
-            }
-
-            if (arenaPlayerIndex == -1)
-            {
-                _logger.LogWarning("No CGameArenaPlayer found in the WR ghost (EntRecordDesc not found) (MapUid: {MapUid}).", mapUid);
-                continue;
-            }
-
-            var arenaPlayer = ghost.RecordData.EntList.FirstOrDefault(x => x.Type == arenaPlayerIndex);
-
-            if (arenaPlayer is null)
-            {
-                _logger.LogWarning("No CGameArenaPlayer found in the WR ghost (EntList not found) (MapUid: {MapUid}).", mapUid);
-                continue;
-            }
-
-            var currentCar = defaultCar;
-            var tempTimestamp = TimeInt32.Zero;
-            var carLengths = new Dictionary<string, TimeInt32>();
-
-            foreach (var delta in arenaPlayer.Samples2.Where(x => x.Type == 81))
-            {
-                var eventType = delta.Data[4];
-
-                var carSwitch = eventType switch
-                {
-                    20 => "CarSport",
-                    21 => "CarSnow",
-                    22 => "CarRally",
-                    23 => "CarDesert",
-                    _ => null
-                };
-
-                if (carSwitch is null || carSwitch == currentCar)
-                {
-                    continue;
-                }
-
-                var carLength = delta.Time - tempTimestamp;
-
-                if (!carLengths.TryAdd(currentCar, carLength))
-                {
-                    carLengths[currentCar] += carLength;
-                }
-
-                currentCar = carSwitch;
-                tempTimestamp = delta.Time;
-            }
-
-            // no car change and default car is not stadium
-            if (carLengths.Count == 0 && defaultCar != "CarSport")
+            // Map is UOTD with unknown car distribution
+            if (dict is null)
             {
                 return null;
             }
 
-            var end = ghost.RaceTime ?? ghost.RecordData.End;
-
-            carLengths.TryAdd(currentCar, end - tempTimestamp);
-
-            var dict = new Dictionary<string, CarDistribution>();
-
-            foreach (var (car, time) in carLengths)
+            // Record has no detected car change
+            if (dict.Count == 0)
             {
-                dict[car] = new CarDistribution
-                {
-                    TimeMilliseconds = time.TotalMilliseconds,
-                    Percentage = time.TotalMilliseconds / (float)end.TotalMilliseconds
-                };
-
-                _logger.LogInformation("Car {Car} was played for {Time}.", car, time);
-            }
-
-            if (dict.Count == 1 && dict.ContainsKey("CarSport"))
-            {
-                _logger.LogInformation("Map has only CarSport (MapUid: {MapUid}).", mapUid);
                 continue;
             }
 
@@ -230,5 +169,102 @@ internal sealed class CarChecker
 
         _logger.LogWarning("No record found with a different car than CarSport, definitely not an UOTD (MapUid: {MapUid}).", mapUid);
         return [];
+    }
+
+    private Dictionary<string, CarDistribution>? CheckGhost(CGameCtnGhost ghost, string mapUid, string defaultCar)
+    {
+        if (ghost.RecordData is null)
+        {
+            _logger.LogWarning("No record data found in the WR ghost (MapUid: {MapUid}).", mapUid);
+            return [];
+        }
+
+        var arenaPlayerIndex = -1;
+        for (int i = 0; i < ghost.RecordData.EntRecordDescs.Length; i++)
+        {
+            if (ghost.RecordData.EntRecordDescs[i].ClassId == 0x032CB000)
+            {
+                arenaPlayerIndex = i;
+                break;
+            }
+        }
+
+        if (arenaPlayerIndex == -1)
+        {
+            _logger.LogWarning("No CGameArenaPlayer found in the WR ghost (EntRecordDesc not found) (MapUid: {MapUid}).", mapUid);
+            return [];
+        }
+
+        var arenaPlayer = ghost.RecordData.EntList.FirstOrDefault(x => x.Type == arenaPlayerIndex);
+
+        if (arenaPlayer is null)
+        {
+            _logger.LogWarning("No CGameArenaPlayer found in the WR ghost (EntList not found) (MapUid: {MapUid}).", mapUid);
+            return [];
+        }
+
+        var currentCar = defaultCar;
+        var tempTimestamp = TimeInt32.Zero;
+        var carLengths = new Dictionary<string, TimeInt32>();
+
+        foreach (var delta in arenaPlayer.Samples2.Where(x => x.Type == 81))
+        {
+            var eventType = delta.Data[4];
+
+            var carSwitch = eventType switch
+            {
+                20 => "CarSport",
+                21 => "CarSnow",
+                22 => "CarRally",
+                23 => "CarDesert",
+                _ => null
+            };
+
+            if (carSwitch is null || carSwitch == currentCar)
+            {
+                continue;
+            }
+
+            var carLength = delta.Time - tempTimestamp;
+
+            if (!carLengths.TryAdd(currentCar, carLength))
+            {
+                carLengths[currentCar] += carLength;
+            }
+
+            currentCar = carSwitch;
+            tempTimestamp = delta.Time;
+        }
+
+        // no car change and default car is not stadium
+        if (carLengths.Count == 0 && defaultCar != "CarSport")
+        {
+            return null;
+        }
+
+        var end = ghost.RaceTime ?? ghost.RecordData.End;
+
+        carLengths.TryAdd(currentCar, end - tempTimestamp);
+
+        var dict = new Dictionary<string, CarDistribution>();
+
+        foreach (var (car, time) in carLengths)
+        {
+            dict[car] = new CarDistribution
+            {
+                TimeMilliseconds = time.TotalMilliseconds,
+                Percentage = time.TotalMilliseconds / (float)end.TotalMilliseconds
+            };
+
+            _logger.LogInformation("Car {Car} was played for {Time}.", car, time);
+        }
+
+        if (dict.Count == 1 && dict.ContainsKey("CarSport"))
+        {
+            _logger.LogInformation("Map has only CarSport (MapUid: {MapUid}).", mapUid);
+            return [];
+        }
+
+        return dict;
     }
 }
