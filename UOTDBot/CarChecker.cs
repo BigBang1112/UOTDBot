@@ -107,7 +107,7 @@ internal sealed class CarChecker
 
     public async Task<Dictionary<string, CarDistribution>?> DownloadAndCheckGhostsAsync(string mapUid, string defaultCar, CGameCtnGhost? raceValidateGhost, CancellationToken cancellationToken)
     {
-        var recordList = await _tmio.GetLeaderboardAsync(mapUid, length: 10, cancellationToken: cancellationToken);
+        var recordList = await _tmio.GetLeaderboardAsync(mapUid, length: 100, cancellationToken: cancellationToken);
 
         if (raceValidateGhost is not null)
         {
