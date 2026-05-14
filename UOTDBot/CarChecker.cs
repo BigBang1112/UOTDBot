@@ -132,8 +132,15 @@ internal sealed class CarChecker
             return null;
         }
 
+        var wrTime = recordList.Tops[0].Time;
+
         foreach (var record in recordList.Tops)
         {
+            if (record.Time - wrTime > TimeInt32.FromSeconds(4))
+            {
+                break;
+            }
+
             using var wrGhostResponse = await _tmio.Client.GetAsync($"https://trackmania.io{record.Url}", cancellationToken);
 
             var ghost = default(CGameCtnGhost);
