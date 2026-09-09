@@ -152,19 +152,27 @@ internal sealed class CarChecker
 
             var ghostGuid = record.Url.Substring(record.Url.LastIndexOf('/') + 1);
 
-            using var wrGhostResponse = await _tmio.Client.GetAsync($"https://core.trackmania.nadeo.live/mapRecords/{ghostGuid}/replay", cancellationToken);
-
             var ghost = default(CGameCtnGhost);
 
-            if (wrGhostResponse.IsSuccessStatusCode)
+            try
             {
-                using var ghostStream = await wrGhostResponse.Content.ReadAsStreamAsync(cancellationToken);
-                ghost = LoadGBX<CGameCtnGhost>(ghostStream);
-            }
+                using var wrGhostResponse = await _tmio.Client.GetAsync($"https://core.trackmania.nadeo.live/mapRecords/{ghostGuid}/replay", cancellationToken);
 
-            if (ghost is null)
+                if (wrGhostResponse.IsSuccessStatusCode)
+                {
+                    using var ghostStream = await wrGhostResponse.Content.ReadAsStreamAsync(cancellationToken);
+                    ghost = LoadGBX<CGameCtnGhost>(ghostStream);
+                }
+
+                if (ghost is null)
+                {
+                    _logger.LogWarning("Failed to get WR ghost for the map (MapUid: {MapUid}, StatusCode: {StatusCode}).", mapUid, wrGhostResponse.StatusCode);
+                    continue;
+                }
+            }
+            catch (Exception ex)
             {
-                _logger.LogWarning("Failed to get WR ghost for the map (MapUid: {MapUid}, StatusCode: {StatusCode}).", mapUid, wrGhostResponse.StatusCode);
+                _logger.LogWarning(ex, "Exception occurred while fetching WR ghost for the map (MapUid: {MapUid}).", mapUid);
                 continue;
             }
 
