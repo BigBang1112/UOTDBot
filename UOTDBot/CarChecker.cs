@@ -107,7 +107,7 @@ internal sealed class CarChecker
 
     public async Task<Dictionary<string, CarDistribution>?> DownloadAndCheckGhostsAsync(string mapUid, string defaultCar, CGameCtnGhost? raceValidateGhost, CancellationToken cancellationToken)
     {
-        var recordList = await _tmio.GetLeaderboardAsync(mapUid, length: 100, cancellationToken: cancellationToken);
+        var recordList = await _tmio.GetLeaderboardAsync(mapUid, length: 50, cancellationToken: cancellationToken);
 
         if (raceValidateGhost is not null)
         {
@@ -141,7 +141,18 @@ internal sealed class CarChecker
                 break;
             }
 
-            using var wrGhostResponse = await _tmio.Client.GetAsync($"https://trackmania.io{record.Url}", cancellationToken);
+            // Too fast downloads can cause 429
+            await Task.Delay(500, cancellationToken);
+
+            if (record.Url is null)
+            {
+                _logger.LogWarning("Record URL of {Time} by {Player} is null for the map (MapUid: {MapUid}).", record.Time, record.Player.Name, mapUid);
+                continue;
+            }
+
+            var ghostGuid = record.Url.Substring(record.Url.LastIndexOf('/') + 1);
+
+            using var wrGhostResponse = await _tmio.Client.GetAsync($"https://core.trackmania.nadeo.live/mapRecords/{ghostGuid}/replay", cancellationToken);
 
             var ghost = default(CGameCtnGhost);
 
